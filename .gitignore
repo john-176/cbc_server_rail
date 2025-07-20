@@ -1,0 +1,26 @@
+# Python / Django
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+*.log
+media/
+static/
+
+# Virtual Environment
+cbc_rail/
+venv/
+.env/
+.venv/
+
+# Django static & media (if generated locally, not for Cloudinary)
+staticfiles/
+media/
+
+# VS Code
+.vscode/
+.idea/
+
+# MacOS / Windows system files
+.DS_Store
+Thumbs.db
