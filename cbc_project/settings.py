@@ -181,11 +181,16 @@ CORS_ALLOWED_ORIGINS = (
     if DEBUG else os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 )
 
-CORS_ALLOWS_CREDENTIALS = True
+CORS_ALLOWS_CREDENTIALS = False
 
 CORS_ALLOW_HEADERS = [
     'authorization',  # Ensure this is present
     'content-type',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 AUTHENTICATION_BACKENDS = (
