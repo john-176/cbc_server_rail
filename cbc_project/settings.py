@@ -188,10 +188,17 @@ CORS_ALLOW_HEADERS = [
     'content-type',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
+if DEBUG: CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+else: CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+#-------------------------COORS------------------------------------------------
+
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
