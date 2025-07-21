@@ -147,12 +147,12 @@ from django.http import JsonResponse
 
 #@login_required
 # views.py
-from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.decorators import authentication_classes, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication\
 
+@api_view(['GET'])  
 @authentication_classes([JWTAuthentication])
-
 def current_user(request):
     return JsonResponse({
         'is_authenticated': True,

@@ -7,7 +7,9 @@ from .views import (
     ShowcaseImageListCreateView,
     ShowcaseImageRetrieveDestroyView,
     YouTubeVideoListCreateView,
-    YouTubeVideoDetailView
+    YouTubeVideoDetailView,
+    AnnouncementDeleteView,
+    AnnouncementListCreateView,
     )
 
 from django.urls import path
@@ -26,5 +28,8 @@ urlpatterns = [
     
     path("youtube/", YouTubeVideoListCreateView.as_view(), name="youtube-list"),
     path("youtube/<int:pk>/", YouTubeVideoDetailView.as_view(), name="youtube-detail"),
+    
+    path('announcements/', AnnouncementListCreateView.as_view(), name='announcement-list'),
+    path('announcements/<int:pk>/', AnnouncementDeleteView.as_view(), name='announcement-delete'),
        
 ]

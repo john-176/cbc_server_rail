@@ -18,6 +18,8 @@ from .models import ShowcaseImage
 from .serializers import ShowcaseImageSerializer
 from rest_framework.parsers import MultiPartParser
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
+
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 2
@@ -51,12 +53,16 @@ class AchieverRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     
 #--------------------video upload---------------------------------------------------------------
 
-from rest_framework import generics, permissions
-from .models import VideoShowcase
-from .serializers import VideoShowcaseSerializer
+
+from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from django.http import JsonResponse
-from rest_framework.views import APIView
+from django.core.exceptions import PermissionDenied
+from .models import VideoShowcase
+from .serializers import VideoShowcaseSerializer
+import cloudinary.uploader
 
 class VideoShowcaseListCreateView(generics.ListCreateAPIView):
     queryset = VideoShowcase.objects.all()
@@ -75,72 +81,74 @@ class VideoUploadView(APIView):
         video_file = request.FILES.get('video_file')
         if not video_file:
             return JsonResponse({'error': 'No video file provided'}, status=400)
-        
-        # Create a temporary VideoShowcase instance
-        video = VideoShowcase(
-            title=request.POST.get('title', 'Untitled'),
-            video=video_file,
-            created_by=request.user
-        )
-        video.save()
-        
-        return JsonResponse({
-            'id': video.id,
-            'title': video.title,
-            'url': video.video.url,
-            'format': video.format
-        })
-        
-from .serializers import VideoShowcaseSerializer
-from django.core.exceptions import PermissionDenied
-from cloudinary import uploader
+
+        try:
+            # Upload to Cloudinary explicitly
+            upload_result = cloudinary.uploader.upload(
+                video_file,
+                resource_type="video",
+                folder="video_showcase"
+            )
+
+            # Create VideoShowcase instance
+            video = VideoShowcase(
+                title=request.POST.get('title', 'Untitled'),
+                video=upload_result['public_id'],  # Store public_id
+                created_by=request.user
+            )
+            video.save()
+
+            return JsonResponse({
+                'id': video.id,
+                'title': video.title,
+                'url': upload_result['secure_url'],
+                'format': upload_result.get('format', 'unknown')
+            }, status=201)
+        except Exception as e:
+            return JsonResponse({'error': f'Upload failed: {str(e)}'}, status=500)
 
 class VideoShowcaseRetrieveDestroyView(generics.RetrieveDestroyAPIView):
     queryset = VideoShowcase.objects.all()
     serializer_class = VideoShowcaseSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
+
     def get_permissions(self):
         if self.request.method == 'DELETE':
-            return [permissions.IsAdminUser()]  # Only admin can delete
+            return [permissions.IsAuthenticated()]  # Allow authenticated users to delete, checked in can_delete_video
         return super().get_permissions()
-    
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        
-        # Add additional video data for frontend
         data = serializer.data
         data['is_staff'] = request.user.is_staff or request.user.is_superuser
         data['can_delete'] = self.can_delete_video(request.user, instance)
-        
         return Response(data)
-    
+
     def can_delete_video(self, user, video):
         """Check if user has permission to delete this video"""
-        return user.is_staff or user.is_superuser or video.created_by == user
-    
+        return user.is_authenticated and (user.is_staff or user.is_superuser or video.created_by == user)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        
+
         if not self.can_delete_video(request.user, instance):
             raise PermissionDenied("You don't have permission to delete this video")
-        
+
         try:
-            # Delete from Cloudinary first
-            if hasattr(instance.video, 'public_id'):
-                uploader.destroy(instance.video.public_id, resource_type='video')
+            # Delete from Cloudinary
+            if instance.video:  # Ensure video field is not empty
+                cloudinary.uploader.destroy(instance.video, resource_type='video')
             
-            # Then delete from database
+            # Delete from database
             self.perform_destroy(instance)
-            
             return Response(status=status.HTTP_204_NO_CONTENT)
-            
         except Exception as e:
             return Response(
                 {'error': f'Failed to delete video: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )        
+            )
+     
             
 #---------------------Announcements--------------------------------------------------------------    
 
