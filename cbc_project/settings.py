@@ -181,7 +181,7 @@ CORS_ALLOWED_ORIGINS = (
     if DEBUG else os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 )
 
-CORS_ALLOWS_CREDENTIALS = True
+CORS_ALLOWS_CREDENTIALS = False
 
 CORS_ALLOW_HEADERS = [
     'authorization',  # Ensure this is present
