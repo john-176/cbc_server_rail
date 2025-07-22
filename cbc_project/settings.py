@@ -78,9 +78,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', # new
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # new
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -285,8 +285,9 @@ CORS_ALLOW_METHODS = [
         "POST",
         "PUT",
     ]
+from corsheaders.defaults import default_headers
 
-CORS_ALLOW_HEADERS = [
+CORS_ALLOW_HEADERS = default_headers + (
         "accept",
         "accept-encoding",
         "authorization",
@@ -298,6 +299,6 @@ CORS_ALLOW_HEADERS = [
         "x-requested-with",
         "Access-Control-Allow-Origin",
         "x-auth-token",
-    ]
+    )
 
 
