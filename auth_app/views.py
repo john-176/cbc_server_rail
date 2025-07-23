@@ -11,7 +11,6 @@ from django.contrib.auth.decorators import login_required
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
@@ -64,7 +63,7 @@ def send_verification_email(user, request):
     uid = urlsafe_base64_encode(str(user.pk).encode())
 
     # Generate the verification link
-    verification_url = f"http://localhost:8000/api/verify-email/{uid}/{token}/"
+    verification_url = f"https://cbcserverrail-production.up.railway.app/api/verify-email/{uid}/{token}/"
 
     # Email subject and message
     subject = "Verify Your Email Address"
@@ -92,7 +91,7 @@ class UserCreate(generics.CreateAPIView):
         send_verification_email(user, self.request)
 
         # Optionally, you can redirect to a front-end confirmation page or send a message
-        return redirect("http://localhost:5173/check-email")
+        return redirect("https://cbe-cloudflare.pages.dev/check-email")
 
     
 @login_required
@@ -106,17 +105,17 @@ def google_login_callback(request):
     
     if not social_account:
         print("No social account found for user", user)
-        return redirect('http://localhost:5173/login/callback/?error=No social account found')
+        return redirect('https://cbe-cloudflare.pages.dev/login/callback/?error=No social account found')
     token = SocialToken.objects.filter(user=social_account, account__provider='google').first()
     
     if token:
         print('Google token found:', token.token)
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        return redirect(f'http://localhost:5173/login/callback/?access_token={access_token}')
+        return redirect(f'https://cbe-cloudflare.pages.dev/login/callback/?access_token={access_token}')
     else:
         print("No google token found for user", user)
-        return redirect('http://localhost:5173/login/callback/?error=NoGoogleToken')
+        return redirect('https://cbe-cloudflare.pages.dev/login/callback/?error=NoGoogleToken')
 
 @csrf_exempt
 def validate_google_token(request):
@@ -183,6 +182,6 @@ def confirm_email(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True  # Activate the user
         user.save()
-        return redirect('http://localhost:5173/login?message=Account confirmed, please log in.')
+        return redirect('https://cbe-cloudflare.pages.dev/login?message=Account confirmed, please log in.')
     else:
         return render(request, 'email/confirmation_invalid.html')  # Handle invalid token
