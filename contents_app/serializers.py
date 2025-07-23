@@ -3,6 +3,7 @@ from cloudinary.models import CloudinaryField
 from rest_framework import serializers, generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 import re
+from cloudinary.utils import cloudinary_url
 
 #---------------AchieverSerializer-----------------------------------
 
@@ -46,9 +47,12 @@ class VideoShowcaseSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+
+
     def get_url(self, obj):
-        if hasattr(obj.video, 'url'):
-            return obj.video.url
+        if obj.video:
+            url, options = cloudinary_url(obj.video.public_id, resource_type='video', secure=True)
+            return url
         return None
 
     def get_is_editable(self, obj):
