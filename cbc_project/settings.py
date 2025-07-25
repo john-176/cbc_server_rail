@@ -30,7 +30,7 @@ if DEBUG:
 else:
     ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
-#------------------------DATABASE SETTINGS--------------------------------
+#------------------------DATABASE SETTINGS------------------------------------------------------
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -50,7 +50,10 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-#-------------------------
+    
+CONN_MAX_AGE = 0  #Close DB connections after every request to save compute time
+
+#------------------------------------------------------------------------------------------------
 # Application definition
 
 INSTALLED_APPS = [
