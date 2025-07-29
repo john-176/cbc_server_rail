@@ -51,7 +51,7 @@ else:
         }
     }
     
-CONN_MAX_AGE = 0  #Close DB connections after every request to save compute time
+#CONN_MAX_AGE = 0  #Close DB connections after every request to save compute time
 
 #------------------------------------------------------------------------------------------------
 # Application definition
